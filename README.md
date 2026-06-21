@@ -1,5 +1,5 @@
 # Ruta Óptima para Ciudades de Japón Mediante Grafos Ponderados
-Este repositorio contiene el proyecto de **ICINF 1103: Matemática Discreta** de la Universidad Católica de Temuco, que tiene como objetivo el modelamiento matemático y la implementación computacional de una red de transporte interurbana para optimizar trayectos utilizando teoría de grafos
+Este repositorio contiene nuestro proyecto que tiene como objetivo el modelamiento matemático y la implementación computacional de una red de transporte interurbana para optimizar trayectos utilizando teoría de grafos
 
 # Integrantes
 * Alonso Astete
