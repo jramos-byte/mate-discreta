@@ -5,6 +5,7 @@ Este repositorio contiene nuestro proyecto que tiene como objetivo el modelamien
 * Alonso Astete
 * Matias Queupumil
 * Juan Ramos
+* Omar Grimaldy
 
 # Descripcion del proyecto
 Nuestro proyecto consiste en modelar una red de ciudades mediante un grafo,
