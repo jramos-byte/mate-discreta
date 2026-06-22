@@ -5,3 +5,30 @@ https://docs.google.com/document/d/1CrOkLF84JwXKHGgIKjVkMRxNGV3HbHJWEsMVZ77kPLY/
 bibliografias:
 https://exporteers.com/transportation-infrastructure-in-japan-and-its-developments/
 https://learnacademy.cl/el-sistema-de-transporte-de-japon-una-red-de-eficiencia-y-tecnologia/?srsltid=AfmBOoqrVpfSjPxPobxzKq9aRKWnvdBmnfdFk6weziSSKQyyMAbFU78H
+
+
+
+
+# 🔗 Enlaces y Bibliografía del Proyecto
+
+A continuación se presentan los enlaces de acceso al documento oficial y las fuentes de información utilizadas para construir el modelo matemático y estructurar la red de transporte en Japón.
+
+## 📄 Documento Principal
+
+* [**Informe Técnico Oficial (Google Docs)**](https://docs.google.com/document/d/1CrOkLF84JwXKHGgIKjVkMRxNGV3HbHJWEsMVZ77kPLY/edit?usp=sharing)
+
+## 📚 Fuentes Bibliográficas y de Datos
+
+Para la construcción del grafo ponderado, la elección de las ciudades y la validación de las conexiones reales, nos basamos en las siguientes fuentes verificables:
+
+1. **Jorudan Co., Ltd. - Planificador oficial de rutas de Japón**
+   * **Enlace:** [https://www.jorudan.co.jp/](https://www.jorudan.co.jp/)
+   * *Uso en el proyecto:* Planificador de tránsito líder utilizado para extraer los tiempos de viaje reales (en minutos) en trenes bala (Shinkansen) y expresos, los cuales representan el peso ($w$) de nuestras aristas.
+
+2. **Exporteers - Transportation Infrastructure in Japan**
+   * **Enlace:** [https://exporteers.com/transportation-infrastructure-in-japan-and-its-developments/](https://exporteers.com/transportation-infrastructure-in-japan-and-its-developments/)
+   * *Uso en el proyecto:* Respaldo de la infraestructura y viabilidad de las conexiones terrestres.
+
+3. **Learn Academy - El Sistema de Transporte de Japón**
+   * **Enlace:** [https://learnacademy.cl/el-sistema-de-transporte-de-japon-una-red-de-eficiencia-y-tecnologia/](https://learnacademy.cl/el-sistema-de-transporte-de-japon-una-red-de-eficiencia-y-tecnologia/?srsltid=AfmBOoqrVpfSjPxPobxzKq9aRKWnvdBmnfdFk6weziSSKQyyMAbFU78H)
+   * *Uso en el proyecto:* Contextualización sobre la red de eficiencia ferroviaria nipona para la formulación del problema.
