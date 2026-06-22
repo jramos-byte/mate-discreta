@@ -84,8 +84,8 @@ def procesar_ruta():
         
         txt_resultado.config(state=tk.NORMAL)
         txt_resultado.delete('1.0', tk.END)
-        txt_resultado.insert(tk.END, f"📌 RUTA ÓPTIMA:\n" + " -> \n".join(camino) + "\n\n")
-        txt_resultado.insert(tk.END, f"⏱️ TIEMPO TOTAL:\n{tiempo_total} min ({horas}h {minutos}min)")
+        txt_resultado.insert(tk.END, f" RUTA ÓPTIMA:\n" + " -> \n".join(camino) + "\n\n")
+        txt_resultado.insert(tk.END, f" TIEMPO TOTAL:\n{tiempo_total} min ({horas}h {minutos}min)")
         txt_resultado.config(state=tk.DISABLED)
         
         mostrar_grafo(camino)
