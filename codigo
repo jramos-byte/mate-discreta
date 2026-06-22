@@ -4,146 +4,145 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-class AppRutaOptima:
-    def __init__(self, root):
-       #configuracion de la ventana principal
-        self.root = root
-        self.root.title("Proyecto Matemática Discreta: Red de ciudades de Japón")
-        self.root.geometry("1100x650")
-        
-        #instanciar el objeto del grafo no dirigido
-        self.G = nx.Graph()
-        
-        #en esta parte se definen las 20 aristas con sus respectivos pesos
-        conexiones = [
-            ("Sapporo", "Hakodate", 230), ("Hakodate", "Aomori", 60), 
-            ("Aomori", "Sendai", 105), ("Sendai", "Tokio", 90), 
-            ("Sendai", "Niigata", 195), ("Niigata", "Tokio", 120), 
-            ("Niigata", "Kanazawa", 180), ("Tokio", "Nagoya", 100), 
-            ("Tokio", "Kanazawa", 150), ("Nagoya", "Kanazawa", 180), 
-            ("Nagoya", "Kioto", 35), ("Nagoya", "Osaka", 50), 
-            ("Kanazawa", "Kioto", 135), ("Kioto", "Osaka", 15), 
-            ("Osaka", "Okayama", 45), ("Osaka", "Hiroshima", 85), 
-            ("Okayama", "Hiroshima", 40), ("Hiroshima", "Fukuoka", 65), 
-            ("Fukuoka", "Kumamoto", 40), ("Kumamoto", "Kagoshima", 45)
-        ]
-        
-        #se encarga de cargar las aristas y vertices al grafo
-        self.G.add_weighted_edges_from(conexiones)
-        
-        #se ajustan las coordenadas espaciales x, y
-        self.pos = {
-            "Sapporo": (5, 10), "Hakodate": (4.5, 8.5), "Aomori": (4, 7), 
-            "Sendai": (3.5, 5), "Niigata": (2.2, 4.8), "Tokio": (3, 3.5), 
-            "Kanazawa": (1.8, 3.8), "Nagoya": (2.2, 2.5), "Kioto": (1.5, 2.3), 
-            "Osaka": (1.2, 1.8), "Okayama": (0.5, 1.5), "Hiroshima": (-0.2, 1.2), 
-            "Fukuoka": (-1, 0.5), "Kumamoto": (-1.2, -0.5), "Kagoshima": (-1.5, -1.5)
-        }
-        
-        #configuracion de la ventana izquierda que controla la interfaz
-        self.frame_lateral = tk.Frame(self.root, width=300, bg="#2f3640", padx=15, pady=15)
-        self.frame_lateral.pack(side=tk.LEFT, fill=tk.Y)
-        
-        #configuracion de la ventana derecha con el grafico 
-        self.frame_mapa = tk.Frame(self.root, bg="white")
-        self.frame_mapa.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        
-        #lista de las ciudades ordenadas para el menu desplegable
-        ciudades_ordenadas = ["Sapporo", "Hakodate", "Aomori", "Sendai", "Niigata", "Tokio", 
-                              "Kanazawa", "Nagoya", "Kioto", "Osaka", "Okayama", "Hiroshima", 
-                              "Fukuoka", "Kumamoto", "Kagoshima"]
-        
-        #configuracion de etiquetas y componentes visuales
-        tk.Label(self.frame_lateral, text="SISTEMA DE RUTAS (JAPÓN)", fg="white", bg="#2f3640", font=('Arial', 12, 'bold')).pack(pady=10)
-        tk.Frame(self.frame_lateral, height=2, bd=1, bg="#718093").pack(fill=tk.X, pady=5)
-        
-        tk.Label(self.frame_lateral, text="Ciudad de Origen:", fg="white", bg="#2f3640", font=('Arial', 10)).pack(anchor=tk.W, pady=5)
-        self.combo_origen = ttk.Combobox(self.frame_lateral, values=ciudades_ordenadas, state="readonly")
-        self.combo_origen.pack(fill=tk.X, pady=5)
-        self.combo_origen.current(0)
-        
-        tk.Label(self.frame_lateral, text="Ciudad de Destino:", fg="white", bg="#2f3640", font=('Arial', 10)).pack(anchor=tk.W, pady=5)
-        self.combo_destino = ttk.Combobox(self.frame_lateral, values=ciudades_ordenadas, state="readonly")
-        self.combo_destino.pack(fill=tk.X, pady=5)
-        self.combo_destino.current(5)
-        
-        self.btn_calcular = tk.Button(self.frame_lateral, text="Calcular Ruta Mínima", command=self.procesar_ruta, bg="#4cd137", fg="white", font=('Arial', 11, 'bold'), bd=0, cursor="hand2")
-        self.btn_calcular.pack(fill=tk.X, pady=20, ipady=5)
-        
-        tk.Label(self.frame_lateral, text="RESULTADOS:", fg="#dcdde1", bg="#2f3640", font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=5)
-        
-        #creacion de cuadro de texto que muestra la forma ordenada en formato string
-        self.txt_resultado = tk.Text(self.frame_lateral, height=12, bg="#353b48", fg="white", bd=0, font=('Arial', 9), wrap=tk.WORD, padx=5, pady=5)
-        self.txt_resultado.pack(fill=tk.BOTH, expand=True, pady=5)
-        self.txt_resultado.config(state=tk.DISABLED)
-        
-        #carga el dibujo inicial estatico de la red
-        self.mostrar_grafo([])
+# crear un objeto del tipo grafo utilizando networkx
+G = nx.Graph()
 
-    def procesar_ruta(self):
-        orig = self.combo_origen.get()
-        dest = self.combo_destino.get()
-        
-        # validar que no se calcule otra ruta hacia el mismo lugar
-        if orig == dest:
-            messagebox.showwarning("Aviso", "El origen y el destino deben ser ciudades distintas")
-            return
-            
-            # en la siguiente linea se hace la ejecucion de los algoritmos matematicos de networkx
-        try:
-            camino = nx.dijkstra_path(self.G, source=orig, target=dest, weight='weight')
-            tiempo_total = nx.dijkstra_path_length(self.G, source=orig, target=dest, weight='weight')
-            
-            # formateo de la salida matematica de minutos a horas/minutos
-            horas = tiempo_total // 60
-            minutos = tiempo_total % 60
-            
-            # desbloquea, limpia, y escribe los resultados para luego volver a bloquear el componente
-            self.txt_resultado.config(state=tk.NORMAL)
-            self.txt_resultado.delete('1.0', tk.END)
-            self.txt_resultado.insert(tk.END, f" RUTA ÓPTIMA:\n" + " -> \n".join(camino) + "\n\n")
-            self.txt_resultado.insert(tk.END, f"⏱ TIEMPO TOTAL:\n{tiempo_total} min ({horas}h {minutos}min)")
-            self.txt_resultado.config(state=tk.DISABLED)
-            
-            #actualiza el mapa enviando el camino calculado
-            self.mostrar_grafo(camino)
-            
-        except nx.NetworkXNoPath:
-            messagebox.showerror("Error", "No se encontró una conexión válida.")
+# Matriz con las 20 conexiones y sus respectivos tiempos
+conexiones = [
+    ("Sapporo", "Hakodate", 230), ("Hakodate", "Aomori", 60), 
+    ("Aomori", "Sendai", 105), ("Sendai", "Tokio", 90), 
+    ("Sendai", "Niigata", 195), ("Niigata", "Tokio", 120), 
+    ("Niigata", "Kanazawa", 180), ("Tokio", "Nagoya", 100), 
+    ("Tokio", "Kanazawa", 150), ("Nagoya", "Kanazawa", 180), 
+    ("Nagoya", "Kioto", 35), ("Nagoya", "Osaka", 50), 
+    ("Kanazawa", "Kioto", 135), ("Kioto", "Osaka", 15), 
+    ("Osaka", "Okayama", 45), ("Osaka", "Hiroshima", 85), 
+    ("Okayama", "Hiroshima", 40), ("Hiroshima", "Fukuoka", 65), 
+    ("Fukuoka", "Kumamoto", 40), ("Kumamoto", "Kagoshima", 45)
+]
 
-    def mostrar_grafo(self, camino_optimo):
-        for widget in self.frame_mapa.winfo_children():
-            widget.destroy()
-            
-       #crea la estructura de las figuras con matplotlib
-        fig, ax = plt.subplots(figsize=(7, 6))
-        ax.set_title("Grafo Ponderado de la Red de Ciudades (Japón)", fontsize=11, fontweight='bold')
-        
-        #dibuja la infraestructura (nodos celestes, aristas grandes)
-        nx.draw_networkx_nodes(self.G, self.pos, ax=ax, node_color='#00a8ff', node_size=350)
-        nx.draw_networkx_labels(self.G, self.pos, ax=ax, font_size=8, font_weight='bold')
-        nx.draw_networkx_edges(self.G, self.pos, ax=ax, edge_color='#dcdde1', width=1.5)
-        
-        #si se le pasa una ruta optima, la superpone con aristas rojas sobre el camino
-        if camino_optimo:
-            aristas_camino = list(zip(camino_optimo[:-1], camino_optimo[1:]))
-            nx.draw_networkx_edges(self.G, self.pos, ax=ax, edgelist=aristas_camino, edge_color='#e84118', width=3.5)
-            nx.draw_networkx_nodes(self.G, self.pos, ax=ax, nodelist=camino_optimo, node_color='#e84118', node_size=400)
+#añade todas las aristas con sus pesos al objeto grafo
+G.add_weighted_edges_from(conexiones)
 
-        #dibuja las etiquetas flotantes de los pesos sobre el centro de cada arista  
-        pesos = nx.get_edge_attributes(self.G, 'weight')
-        nx.draw_networkx_edge_labels(self.G, self.pos, edge_labels=pesos, font_size=7, ax=ax, label_pos=0.5)
-        
-        # oculta ejes coordenados de fondo y ajusta los margenes 
-        plt.axis('off')
-        fig.tight_layout()
-        
-        #enlaza de forma fisica el lienzo de matplotlib dentro del frame de tkinter 
-        canvas = FigureCanvasTkAgg(fig, master=self.frame_mapa)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+# diccionario que guarda las posiciones (x, y) para representar las ciudades
+pos = {
+    "Sapporo": (5, 10), "Hakodate": (4.5, 8.5), "Aomori": (4, 7), 
+    "Sendai": (3.5, 5), "Niigata": (2.2, 4.8), "Tokio": (3, 3.5), 
+    "Kanazawa": (1.8, 3.8), "Nagoya": (2.2, 2.5), "Kioto": (1.5, 2.3), 
+    "Osaka": (1.2, 1.8), "Okayama": (0.5, 1.5), "Hiroshima": (-0.2, 1.2), 
+    "Fukuoka": (-1, 0.5), "Kumamoto": (-1.2, -0.5), "Kagoshima": (-1.5, -1.5)
+}
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = AppRutaOptima(root)
-    root.mainloop()
+# funciones de logica y dibujo del grafico 
+#  la siguiente funcion se encarga de renderizar el mapa interactivo en la parte derecha de la pantalla, recibiendo como parametro la lista con las ciudades que componen el camino minimo
+def mostrar_grafo(camino_optimo):
+    for widget in frame_mapa.winfo_children():
+        widget.destroy()
+
+    # inicia una nueva figura y un lienzo de dibujo con matplotlib   
+    fig, ax = plt.subplots(figsize=(7, 6))
+    ax.set_title("Grafo Ponderado de la Red de Ciudades (Japón)", fontsize=11, fontweight='bold')
+    
+    #dibuja la infraestructura de la red: nodos y lineas
+    nx.draw_networkx_nodes(G, pos, ax=ax, node_color='#00a8ff', node_size=350)
+    nx.draw_networkx_labels(G, pos, ax=ax, font_size=8, font_weight='bold')
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color='#dcdde1', width=1.5)
+    
+    if camino_optimo:
+        aristas_camino = list(zip(camino_optimo[:-1], camino_optimo[1:]))
+        nx.draw_networkx_edges(G, pos, ax=ax, edgelist=aristas_camino, edge_color='#e84118', width=3.5)
+        nx.draw_networkx_nodes(G, pos, ax=ax, nodelist=camino_optimo, node_color='#e84118', node_size=400)
+        
+    #obtiene los atributos numericos de peso de las aristas y los proyecta
+    pesos = nx.get_edge_attributes(G, 'weight')
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=pesos, font_size=7, ax=ax, label_pos=0.5)
+    
+    #desactiva la cuadricula y los ejes cartesianos de fondo
+    plt.axis('off')
+    fig.tight_layout()
+    
+    #mete el lienzo fisico de matplotlib en el contenedor de tkinter 
+    canvas = FigureCanvasTkAgg(fig, master=frame_mapa)
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+#la siguiente funcion extrae los datos de la interfaz, calcula las rutas optimas y actualiza la pantalla con los resultados matematicos
+def procesar_ruta():
+    orig = combo_origen.get()
+    dest = combo_destino.get()
+    
+    if orig == dest:
+        messagebox.showwarning("Aviso", "El origen y el destino deben ser ciudades distintas.")
+        return
+        
+    try:
+        camino = nx.dijkstra_path(G, source=orig, target=dest, weight='weight')
+        tiempo_total = nx.dijkstra_path_length(G, source=orig, target=dest, weight='weight')
+        
+        horas = tiempo_total // 60
+        minutos = tiempo_total % 60
+        
+        txt_resultado.config(state=tk.NORMAL)
+        txt_resultado.delete('1.0', tk.END)
+        txt_resultado.insert(tk.END, f"📌 RUTA ÓPTIMA:\n" + " -> \n".join(camino) + "\n\n")
+        txt_resultado.insert(tk.END, f"⏱️ TIEMPO TOTAL:\n{tiempo_total} min ({horas}h {minutos}min)")
+        txt_resultado.config(state=tk.DISABLED)
+        
+        mostrar_grafo(camino)
+        
+    except nx.NetworkXNoPath:
+        messagebox.showerror("Error", "No se encontró una conexión válida.")
+
+#  INTERFAZ GRÁFICA PRINCIPAL 
+
+# Instancia la ventana raiz de la aplicacion grafica usando tkinter
+#creacion del contenedor lateral izquierdo
+#creacion del contenedor derecho
+#lista plana estructurada
+#creacion del titulo
+#construccion del menu desplegable de ka ciudad de origen
+#construccion del menu desplegable de la ciudad de destino 
+#boton interactivo 
+#bloque de texto que imprime la lista limpia del recorrido final y tiempos
+#llamada para pintar el mapa en blanco
+#mantiene la interfaz grafica en un bucle infinito escuchando las interacciones del usuario
+
+root = tk.Tk()
+root.title("Proyecto Matemática Discreta: Red Ferroviaria Japón")
+root.geometry("1100x650")
+
+frame_lateral = tk.Frame(root, width=300, bg="#2f3640", padx=15, pady=15)
+frame_lateral.pack(side=tk.LEFT, fill=tk.Y)
+
+frame_mapa = tk.Frame(root, bg="white")
+frame_mapa.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+ciudades_ordenadas = ["Sapporo", "Hakodate", "Aomori", "Sendai", "Niigata", "Tokio", 
+                      "Kanazawa", "Nagoya", "Kioto", "Osaka", "Okayama", "Hiroshima", 
+                      "Fukuoka", "Kumamoto", "Kagoshima"]
+
+tk.Label(frame_lateral, text="SISTEMA DE RUTAS (JAPÓN)", fg="white", bg="#2f3640", font=('Arial', 12, 'bold')).pack(pady=10)
+tk.Frame(frame_lateral, height=2, bd=1, bg="#718093").pack(fill=tk.X, pady=5)
+
+tk.Label(frame_lateral, text="Ciudad de Origen:", fg="white", bg="#2f3640", font=('Arial', 10)).pack(anchor=tk.W, pady=5)
+combo_origen = ttk.Combobox(frame_lateral, values=ciudades_ordenadas, state="readonly")
+combo_origen.pack(fill=tk.X, pady=5)
+combo_origen.current(0)
+
+tk.Label(frame_lateral, text="Ciudad de Destino:", fg="white", bg="#2f3640", font=('Arial', 10)).pack(anchor=tk.W, pady=5)
+combo_destino = ttk.Combobox(frame_lateral, values=ciudades_ordenadas, state="readonly")
+combo_destino.pack(fill=tk.X, pady=5)
+combo_destino.current(5)
+
+btn_calcular = tk.Button(frame_lateral, text="Calcular Ruta Mínima", command=procesar_ruta, bg="#4cd137", fg="white", font=('Arial', 11, 'bold'), bd=0, cursor="hand2")
+btn_calcular.pack(fill=tk.X, pady=20, ipady=5)
+
+tk.Label(frame_lateral, text="RESULTADOS:", fg="#dcdde1", bg="#2f3640", font=('Arial', 10, 'bold')).pack(anchor=tk.W, pady=5)
+
+txt_resultado = tk.Text(frame_lateral, height=12, bg="#353b48", fg="white", bd=0, font=('Arial', 9), wrap=tk.WORD, padx=5, pady=5)
+txt_resultado.pack(fill=tk.BOTH, expand=True, pady=5)
+txt_resultado.config(state=tk.DISABLED)
+
+mostrar_grafo([])
+
+root.mainloop()
