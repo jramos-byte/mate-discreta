@@ -4,10 +4,9 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# crear un objeto del tipo grafo utilizando networkx
+# Crear un objeto del tipo grafo utilizando networkx (Exclusivo para dibujo)
 G = nx.Graph()
 
-# Matriz con las 20 conexiones y sus respectivos tiempos
 conexiones = [
     ("Sapporo", "Hakodate", 230), ("Hakodate", "Aomori", 60), 
     ("Aomori", "Sendai", 105), ("Sendai", "Tokio", 90), 
@@ -21,10 +20,8 @@ conexiones = [
     ("Fukuoka", "Kumamoto", 40), ("Kumamoto", "Kagoshima", 45)
 ]
 
-#añade todas las aristas con sus pesos al objeto grafo
 G.add_weighted_edges_from(conexiones)
 
-# diccionario que guarda las posiciones (x, y) para representar las ciudades
 pos = {
     "Sapporo": (5, 10), "Hakodate": (4.5, 8.5), "Aomori": (4, 7), 
     "Sendai": (3.5, 5), "Niigata": (2.2, 4.8), "Tokio": (3, 3.5), 
@@ -33,17 +30,62 @@ pos = {
     "Fukuoka": (-1, 0.5), "Kumamoto": (-1.2, -0.5), "Kagoshima": (-1.5, -1.5)
 }
 
-# funciones de logica y dibujo del grafico 
-#  la siguiente funcion se encarga de renderizar el mapa interactivo en la parte derecha de la pantalla, recibiendo como parametro la lista con las ciudades que componen el camino minimo
+# =====================================================================
+# IMPLEMENTACIÓN DEL ALGORITMO DE DIJKSTRA
+# =====================================================================
+def dijkstra(origen, destino):
+    # Generamos la lista de adyacencia desde el objeto G de networkx
+    nodos = list(G.nodes)
+    
+    distancias = {nodo: float('inf') for nodo in nodos}
+    distancias[origen] = 0
+    predecesores = {nodo: None for nodo in nodos}
+    
+    # Lista de nodos no visitados
+    no_visitados = list(nodos)
+    
+    while no_visitados:
+        # Encontrar el nodo con la distancia mínima actual en la lista lineal
+        nodo_actual = min(no_visitados, key=lambda nodo: distancias[nodo])
+        
+        # Si la distancia mínima es infinito, el resto de los nodos son inalcanzables
+        if distancias[nodo_actual] == float('inf'):
+            break
+            
+        # Si llegamos al destino, detenemos el proceso
+        if nodo_actual == destino:
+            break
+            
+        no_visitados.remove(nodo_actual)
+        
+        # Relajación de aristas explorando vecinos del nodo actual 
+        for vecino in G.neighbors(nodo_actual):
+            peso = G[nodo_actual][vecino]['weight']
+            distancia_alternativa = distancias[nodo_actual] + peso
+            
+            if distancia_alternativa < distancias[vecine := vecino]:
+                distancias[vecine] = distancia_alternativa
+                predecesores[vecine] = nodo_actual
+                
+    # Reconstrucción del camino óptimo
+    camino = []
+    nodo_paso = destino
+    while nodo_paso is not None:
+        camino.insert(0, nodo_paso)
+        nodo_paso = predecesores[nodo_paso]
+        
+    return camino, distancias[destino]
+
+# ======================================
+# FUNCIONES DE INTERFAZ Y DIBUJO
+# ======================================
 def mostrar_grafo(camino_optimo):
     for widget in frame_mapa.winfo_children():
         widget.destroy()
 
-    # inicia una nueva figura y un lienzo de dibujo con matplotlib   
     fig, ax = plt.subplots(figsize=(7, 6))
-    ax.set_title("Grafo Ponderado de la Red de Ciudades (Japón)", fontsize=11, fontweight='bold')
+    ax.set_title("Grafo Ponderado de las Ciudades", fontsize=11, fontweight='bold')
     
-    #dibuja la infraestructura de la red: nodos y lineas
     nx.draw_networkx_nodes(G, pos, ax=ax, node_color='#00a8ff', node_size=350)
     nx.draw_networkx_labels(G, pos, ax=ax, font_size=8, font_weight='bold')
     nx.draw_networkx_edges(G, pos, ax=ax, edge_color='#dcdde1', width=1.5)
@@ -53,20 +95,16 @@ def mostrar_grafo(camino_optimo):
         nx.draw_networkx_edges(G, pos, ax=ax, edgelist=aristas_camino, edge_color='#e84118', width=3.5)
         nx.draw_networkx_nodes(G, pos, ax=ax, nodelist=camino_optimo, node_color='#e84118', node_size=400)
         
-    #obtiene los atributos numericos de peso de las aristas y los proyecta
     pesos = nx.get_edge_attributes(G, 'weight')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=pesos, font_size=7, ax=ax, label_pos=0.5)
     
-    #desactiva la cuadricula y los ejes cartesianos de fondo
     plt.axis('off')
     fig.tight_layout()
     
-    #mete el lienzo fisico de matplotlib en el contenedor de tkinter 
     canvas = FigureCanvasTkAgg(fig, master=frame_mapa)
     canvas.draw()
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
-#la siguiente funcion extrae los datos de la interfaz, calcula las rutas optimas y actualiza la pantalla con los resultados matematicos
 def procesar_ruta():
     orig = combo_origen.get()
     dest = combo_destino.get()
@@ -76,9 +114,12 @@ def procesar_ruta():
         return
         
     try:
-        camino = nx.dijkstra_path(G, source=orig, target=dest, weight='weight')
-        tiempo_total = nx.dijkstra_path_length(G, source=orig, target=dest, weight='weight')
+        # Llamamos a nuestra función del algoritmo
+        camino, tiempo_total = dijkstra(orig, dest)
         
+        if tiempo_total == float('inf'):
+            raise nx.NetworkXNoPath
+            
         horas = tiempo_total // 60
         minutos = tiempo_total % 60
         
@@ -93,22 +134,11 @@ def procesar_ruta():
     except nx.NetworkXNoPath:
         messagebox.showerror("Error", "No se encontró una conexión válida.")
 
-#  INTERFAZ GRÁFICA PRINCIPAL 
-
-# Instancia la ventana raiz de la aplicacion grafica usando tkinter
-#creacion del contenedor lateral izquierdo
-#creacion del contenedor derecho
-#lista plana estructurada
-#creacion del titulo
-#construccion del menu desplegable de ka ciudad de origen
-#construccion del menu desplegable de la ciudad de destino 
-#boton interactivo 
-#bloque de texto que imprime la lista limpia del recorrido final y tiempos
-#llamada para pintar el mapa en blanco
-#mantiene la interfaz grafica en un bucle infinito escuchando las interacciones del usuario
-
+# ===================================
+# INTERFAZ GRÁFICA PRINCIPAL
+# ===================================
 root = tk.Tk()
-root.title("Proyecto Matemática Discreta: Red Ferroviaria Japón")
+root.title("Proyecto Matemática Discreta")
 root.geometry("1100x650")
 
 frame_lateral = tk.Frame(root, width=300, bg="#2f3640", padx=15, pady=15)
@@ -121,7 +151,7 @@ ciudades_ordenadas = ["Sapporo", "Hakodate", "Aomori", "Sendai", "Niigata", "Tok
                       "Kanazawa", "Nagoya", "Kioto", "Osaka", "Okayama", "Hiroshima", 
                       "Fukuoka", "Kumamoto", "Kagoshima"]
 
-tk.Label(frame_lateral, text="SISTEMA DE RUTAS (JAPÓN)", fg="white", bg="#2f3640", font=('Arial', 12, 'bold')).pack(pady=10)
+tk.Label(frame_lateral, text="SISTEMA DE RUTAS", fg="white", bg="#2f3640", font=('Arial', 12, 'bold')).pack(pady=10)
 tk.Frame(frame_lateral, height=2, bd=1, bg="#718093").pack(fill=tk.X, pady=5)
 
 tk.Label(frame_lateral, text="Ciudad de Origen:", fg="white", bg="#2f3640", font=('Arial', 10)).pack(anchor=tk.W, pady=5)
